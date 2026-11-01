@@ -122,12 +122,17 @@ def ensure_fonts():
                     p.unlink()
 
 
+# Bộ dàn chữ của Pillow: None = để Pillow tự chọn (RAQM nếu máy có libfribidi, không thì BASIC). Hai bộ cho kerning/vị trí dấu hơi
+# khác nhau nên khung hình lệch nhẹ giữa các máy. Test golden ghim BASIC (tests/conftest.py: pinned_layout) để ảnh chuẩn như nhau ở mọi nơi.
+LAYOUT_ENGINE = None
+
+
 @lru_cache(maxsize=64)
 def get_font(weight, size):
     cands = [d / FONT_FILES[weight] for d in FONT_DIRS] + [Path(p) for p in FONT_FALLBACK[weight]]
     for p in cands:
         if p.exists():
-            return ImageFont.truetype(str(p), int(size))
+            return ImageFont.truetype(str(p), int(size), layout_engine=LAYOUT_ENGINE)
     return ImageFont.load_default()
 
 
