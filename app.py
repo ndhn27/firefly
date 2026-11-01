@@ -786,6 +786,21 @@ def open_browser(url):
     return ok
 
 
+def utf8_stdio():
+    """In tiếng Việt ra stdout/stderr mà không bao giờ ném lỗi mã hoá.
+    Bản .exe PyInstaller bỏ qua PYTHONUTF8/PYTHONIOENCODING, nên khi stdout/stderr là pipe hay file (không phải cửa sổ lệnh) Windows dùng bảng mã
+    ANSI (cp1252): "đ", "Ỗ"… không mã hoá được -> UnicodeEncodeError ngay ở dòng in địa chỉ, rồi lỗi thứ hai trong chính khối báo lỗi
+    -> "Failed to execute script 'app'". Cửa sổ lệnh thật thì Python đã ghi bằng UTF-8, chỉ cần không văng lỗi vì một ký tự."""
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            if stream.isatty():
+                stream.reconfigure(errors="replace")
+            else:
+                stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError, OSError):
+            pass  # không có stream (bản không cửa sổ lệnh) hoặc không phải TextIOWrapper
+
+
 def main():
     multiprocessing.freeze_support()
     PROJ.mkdir(parents=True, exist_ok=True)
@@ -813,6 +828,7 @@ def main():
 
 
 if __name__ == "__main__":
+    utf8_stdio()
     try:
         sys.exit(main())
     except E.UserError as e:
@@ -821,6 +837,9 @@ if __name__ == "__main__":
     except Exception as e:  # noqa
         d = E.explain(e, where="khởi động")
         print(f"\n  LỖI: {d['error']}\n  {d['hint']}\n")
-    if getattr(sys, "frozen", False) and sys.platform == "win32":
-        input("Bấm Enter để đóng cửa sổ…")  # bản .exe: giữ cửa sổ lại để người dùng kịp đọc lỗi
+    if getattr(sys, "frozen", False) and sys.platform == "win32" and sys.stdin is not None and sys.stdin.isatty():
+        try:
+            input("Bấm Enter để đóng cửa sổ…")  # bản .exe: giữ cửa sổ lại để người dùng kịp đọc lỗi (chỉ khi có người ngồi trước cửa sổ lệnh)
+        except (EOFError, OSError):
+            pass
     sys.exit(1)
