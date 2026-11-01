@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Firefly Video</title>
+<link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+<div id="app">
+  <header>
+    <span class="logo">✦ Firefly Video</span>
+    <select id="projSel" title="Dự án"></select>
+    <button id="btnSettings">⚙ Cài đặt</button>
+    <button id="btnUndo" class="ic" title="Hoàn tác (Ctrl+Z)" disabled>↶</button><button id="btnRedo" class="ic" title="Làm lại (Ctrl+Shift+Z hoặc Ctrl+Y)" disabled>↷</button>
+    <span class="sp"></span>
+    <button id="btnVoices">🔊 Tạo giọng tất cả</button>
+    <button id="btnPreview">▶ Xem thử có tiếng</button>
+    <button id="btnExport" class="pri">⬇ Xuất video</button>
+  </header>
+  <main>
+    <aside id="scenes">
+      <div class="ahead"><b>Cảnh</b><button class="sm" id="btnAI" title="Tạo kịch bản bằng AI chạy trên máy (Ollama)">✨ AI</button><button class="sm" id="btnPaste">Dán kịch bản</button><button class="sm pri" id="btnAdd">+ Cảnh</button></div>
+      <div id="sceneList"></div>
+    </aside>
+    <section id="stage">
+      <div id="stageBox"><div id="screen"><img id="prev" alt=""><video id="vid" controls hidden></video><div id="safe" hidden></div></div></div>
+      <div id="transport">
+        <div class="row"><button id="btnStill" hidden>← Về chế độ chỉnh sửa</button><input type="range" id="scrub" min="0" max="1" step="0.04" value="0"><span id="timeLbl" class="hint" style="min-width:92px;text-align:right">0:00 / 0:00</span><button class="sm tg" id="btnSafe" aria-pressed="false" title="Hiện/ẩn đường kẻ vùng an toàn: khung nét đứt xanh là vùng chữ và ảnh nên nằm trong; vạch vàng là đáy phụ đề; vùng sọc đỏ là lề hoặc chỗ giao diện app (Reels/Shorts/TikTok) che mất. Chỉ hiện khi xem, không có trong video xuất.">▦ Vùng an toàn</button></div>
+        <div id="ticks"></div>
+      </div>
+    </section>
+    <aside id="editor"></aside>
+  </main>
+</div>
+<div id="modalBg"><div class="modal" id="modal"></div></div>
+<div id="toast"></div>
+
+<!-- Script thường (không phải ES module), dùng chung một phạm vi toàn cục: PHẢI nạp đúng thứ tự này. core.js: tiện ích + trạng thái S · history: hoàn tác · save: lưu · stage: khung xem trước · scenes: danh sách cảnh · editor: chỉnh cảnh · settings: Cài đặt · script: kịch bản/AI · jobs: tạo giọng/xuất · main.js: khởi động -->
+<script src="/static/js/core.js"></script>
+<script src="/static/js/history.js"></script>
+<script src="/static/js/save.js"></script>
+<script src="/static/js/stage.js"></script>
+<script src="/static/js/scenes.js"></script>
+<script src="/static/js/editor.js"></script>
+<script src="/static/js/settings.js"></script>
+<script src="/static/js/script.js"></script>
+<script src="/static/js/jobs.js"></script>
+<script src="/static/js/main.js"></script>
+</body>
+</html>

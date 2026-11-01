@@ -1,0 +1,5 @@
+# Tuỳ chọn: giọng dự phòng (xem README, mục "Giọng dự phòng"). Cài:  pip install -r requirements-optional.txt
+# gTTS: Google Translate TTS, cần internet, cũng không chính thức; chỉ là phương án cuối trong chuỗi giọng.
+gTTS>=2.5
+# Piper (giọng chạy offline trên máy) là chương trình riêng, không import từ tool:
+#   pip install piper-tts      rồi tải file giọng .onnx + .onnx.json vào piper_voices/  (xem README)

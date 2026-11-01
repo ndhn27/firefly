@@ -1,0 +1,42 @@
+# Chạy toàn bộ test trên Windows, macOS và Linux để lỗi riêng của từng hệ điều hành lộ ra sớm (đặc biệt cách tạo tiến trình con
+# `spawn` và đóng gói PyInstaller).
+name: test
+on: [push, pull_request]
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      FFV_NO_BROWSER: "1"
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install -r requirements-dev.txt playwright gTTS
+      - run: python -m playwright install --with-deps chromium
+      - run: python -m pytest tests -q
+  pack:
+    # Bản đóng gói chạy thật như người dùng (chậm: build + khởi động bản .exe / bản nhị phân)
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      FFV_NO_BROWSER: "1"
+      FFV_TEST_PACK: "1"
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install -r requirements-dev.txt -r requirements-pack.txt
+      - run: python -m pytest tests/test_pack.py -q

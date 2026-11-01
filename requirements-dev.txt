@@ -1,0 +1,6 @@
+-r requirements.txt
+pytest>=8.0
+# Tuỳ chọn, cho tests/test_ui.py và tests/test_e6_ui.py (thử giao diện bằng trình duyệt thật; không cài thì file đó tự bỏ qua):
+#   pip install playwright && playwright install chromium
+# Tuỳ chọn, chỉ khi đóng gói .exe (build_exe.bat / build_exe.sh) hoặc chạy tests/test_pack.py:
+#   pip install pyinstaller

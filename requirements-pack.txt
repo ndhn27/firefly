@@ -1,0 +1,2 @@
+# Chỉ để đóng gói .exe / bản chạy không cần Python (build_exe.bat, build_exe.sh)
+pyinstaller>=6.0

@@ -1,0 +1,17 @@
+# Môi trường Python riêng do run.sh / build_exe.sh tạo, kết quả đóng gói, dữ liệu của người dùng
+.venv/
+.venv-build/
+build/
+dist/
+__pycache__/
+.pytest_cache/
+projects/
+logs/
+ai_settings.json
+piper_voices/
+piper/
+.env
+*.log
+.DS_Store
+.idea/
+.vscode/
