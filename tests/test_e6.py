@@ -60,7 +60,7 @@ class Fake:
                         self.wfile.flush()
                     self.wfile.write((json.dumps({"message": {"role": "assistant", "content": ""}, "done": True,
                                                   "done_reason": r.get("done_reason", "stop")}) + "\n").encode())
-                except (BrokenPipeError, ConnectionResetError):
+                except ConnectionError:  # khách đã huỷ: Linux/macOS báo BrokenPipe/ConnectionReset, Windows báo ConnectionAborted (WinError 10053)
                     pass
 
         self.srv = ThreadingHTTPServer(("127.0.0.1", 0), H)
@@ -223,6 +223,19 @@ def test_cancel_interrupts_a_model_that_is_still_loading(fake):
     with pytest.raises(G.Cancelled):
         G.generate(fake.url, "m", "chủ đề", duration=60, cancel=lambda: flag["c"])
     assert time.time() - t0 < 5
+
+
+def test_cancel_does_not_rely_on_shutdown_waking_the_blocked_reader(fake, monkeypatch):
+    """Trên Windows, shutdown() từ luồng khác không đánh thức lệnh đọc socket đang chờ (CI từng chờ trọn 30 giây).
+    Giả lập điều đó ở mọi hệ điều hành để lỗi này không quay lại mà chỉ Windows mới thấy."""
+    monkeypatch.setattr(socket.socket, "shutdown", lambda self, how: None)
+    fake.replies = [dict(content=scenes_json(6), delay=4)]
+    flag = {"c": False}
+    threading.Timer(0.5, lambda: flag.update(c=True)).start()
+    t0 = time.time()
+    with pytest.raises(G.Cancelled):
+        G.generate(fake.url, "m", "chủ đề", duration=60, cancel=lambda: flag["c"])
+    assert time.time() - t0 < 2
 
 
 def test_input_validation():
