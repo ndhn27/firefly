@@ -11,6 +11,8 @@ thêm ảnh, chuyển cảnh, phụ đề tự chia câu, xuất tới 2K 60fps.
 - Có giọng dự phòng khi Edge TTS lỗi (Piper chạy offline, gTTS), chuẩn hoá âm lượng, hoàn tác/làm lại.
 - Kịch bản AI là tuỳ chọn, chạy bằng Ollama trên máy bạn.
 
+![Giao diện Firefly Video: danh sách cảnh, xem trước có phụ đề, khung chỉnh sửa](docs/screenshot.png)
+
 ## Chạy
 Cần Python 3.10 trở lên (hoặc dùng bản đóng gói bên dưới, không cần Python). Tool tự mở trình duyệt tại http://localhost:8765; không mở được (máy chủ, WSL, SSH…) thì in địa chỉ ra để bạn mở tay.
 Không cần cài ffmpeg riêng (đã kèm qua `imageio-ffmpeg`; nếu máy đã có ffmpeg thì dùng cái đó).
