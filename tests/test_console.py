@@ -19,10 +19,12 @@ TEXT = "Firefly Video v0.9 đang chạy · LỖI: cổng bận"
 
 
 def legacy(tty=False, encoding="cp1252"):
-    """Luồng ra giống stdout dạng ống trên Windows tiếng Anh (bảng mã ANSI cp1252)."""
+    """Luồng ra giống stdout dạng ống trên Windows tiếng Anh (bảng mã ANSI cp1252).
+    newline="\n": test này chỉ kiểm BẢNG MÃ. Mặc định (newline=None) Windows dịch "\n" thành "\r\n" nên cùng một test
+    sẽ cho kết quả khác nhau giữa Windows và Linux/macOS."""
     raw = io.BytesIO()
     cls = type("Tty", (io.TextIOWrapper,), {"isatty": lambda self: True}) if tty else io.TextIOWrapper
-    return raw, cls(raw, encoding=encoding, write_through=True)
+    return raw, cls(raw, encoding=encoding, newline="\n", write_through=True)
 
 
 def test_premise_a_cp1252_pipe_really_cannot_print_vietnamese():
