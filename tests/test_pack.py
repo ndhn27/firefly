@@ -9,6 +9,7 @@ import shutil
 import socket
 import subprocess
 import sys
+import threading
 import time
 import urllib.request
 import uuid
@@ -52,7 +53,21 @@ def start(dist, port, mp=None, tmp=None):
     env.pop("FFV_MP", None)
     if mp:
         env["FFV_MP"] = mp
-    return subprocess.Popen([str(exe)], cwd=str(tmp), env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    # Giải mã UTF-8 một cách khoan dung: nếu app in sai bảng mã thì phải thấy được chính lỗi của app, không phải UnicodeDecodeError của test.
+    proc = subprocess.Popen([str(exe)], cwd=str(tmp), env=env, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                            text=True, encoding="utf-8", errors="replace")
+    # Luôn có người đọc ống: ống vô danh của Windows chỉ chứa ~4 KB, mà Flask ghi một dòng cho MỖI lần test hỏi trạng thái job;
+    # không ai đọc thì app tắc ở lệnh ghi log và job "treo" mãi.
+    proc.out = []
+    proc.pump = threading.Thread(target=lambda: proc.out.extend(proc.stdout), daemon=True)
+    proc.pump.start()
+    return proc
+
+
+def output(proc, wait=5):
+    """Mọi thứ app đã in ra (chờ luồng đọc ống xong nếu tiến trình đã thoát)."""
+    proc.pump.join(wait)
+    return "".join(proc.out)
 
 
 def call(port, path, data=None, method=None, timeout=60):
@@ -66,7 +81,7 @@ def wait_up(port, proc, timeout=90):
     t0 = time.time()
     while time.time() - t0 < timeout:
         if proc.poll() is not None:
-            raise AssertionError("tiến trình thoát sớm:\n" + (proc.stdout.read() or "")[-3000:])
+            raise AssertionError("tiến trình thoát sớm:\n" + output(proc)[-3000:])
         try:
             if call(port, "/api/ping", timeout=2).get("app") == "firefly-video":
                 return
@@ -135,7 +150,8 @@ def test_frozen_app_end_to_end(dist, tmp_path, mp):
         assert "bản đóng gói" in log and "Xuất xong" in log and "sẵn sàng" in log, "log của tiến trình con phải về được file chính"
         # --- mở lần hai: nhận ra bản đang chạy rồi thoát
         second = start(dist, port, mp, tmp_path)
-        assert second.wait(60) == 0 and "đã chạy sẵn" in second.stdout.read()
+        code = second.wait(60)
+        assert code == 0 and "đã chạy sẵn" in output(second), (code, output(second)[-2000:])
     finally:
         stop(proc)
     # --- tắt rồi mở lại: dự án vẫn còn (dữ liệu cạnh file chạy, không nằm trong thư mục tạm)
