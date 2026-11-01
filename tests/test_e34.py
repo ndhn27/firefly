@@ -251,7 +251,7 @@ E4_GOLD = [
 
 
 @pytest.mark.parametrize("name,aspect,mutate", E4_GOLD, ids=[g[0] for g in E4_GOLD])
-def test_e4_golden(root, name, aspect, mutate):
+def test_e4_golden(root, name, aspect, mutate, pinned_layout):
     p = sample(root, aspect)
     mutate(p)
     frame = ctx_for(root, p, aspect).render(1.6)
