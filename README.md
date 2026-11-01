@@ -1,9 +1,7 @@
 <h1 align="center">Firefly Video</h1>
 
-<p align="center">
 [![test](https://github.com/ndhn27/firefly/actions/workflows/test.yml/badge.svg)](https://github.com/ndhn27/firefly/actions/workflows/test.yml)
 [![Giấy phép: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-</p>
 
 Tool dựng video giải thích: nền động đom đóm/ánh sáng, giọng đọc Edge TTS (miễn phí, có giọng dự phòng),
 thêm ảnh, chuyển cảnh, phụ đề tự chia câu, xuất tới 2K 60fps.
