@@ -64,6 +64,12 @@ def open_app(env, pid):
     p.evaluate(f"localStorage.setItem('ffv_last', '{pid}')")
     p.reload()
     p.wait_for_function("typeof S !== 'undefined' && S.proj !== null && S.tl.scenes.length > 0")
+    try:
+        p.wait_for_selector("#editor textarea", timeout=10000)
+    except Exception:  # noqa
+        # S.proj đã có nhưng khung chỉnh sửa chưa/không vẽ ra (boot() nuốt lỗi và chỉ hiện toast): in đủ thông tin để truy
+        info = p.evaluate("() => ({pid: S.pid, sel: S.sel, scenes: S.proj && S.proj.scenes.length, toast: document.querySelector('#toast').innerText, editor: document.querySelector('#editor').innerHTML.slice(0, 200)})")
+        raise AssertionError(f"Khung chỉnh sửa không được vẽ sau khi mở dự án: {info}") from None
     return p
 
 
