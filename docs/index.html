@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Firefly Video – dựng video giải thích ngay trên máy bạn</title>
+<meta name="description" content="Dán kịch bản, Firefly Video lo giọng đọc, phụ đề, ảnh và chuyển cảnh trên nền đom đóm. Chạy trên máy bạn, xuất tới 2K 60fps. Mã nguồn mở, giấy phép MIT.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='7' fill='%23f6c453'/%3E%3Ccircle cx='16' cy='16' r='13' fill='%23f6c453' opacity='.25'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700;800&display=swap">
+<style>
+:root {
+  --night: #0b1511; --soil: #12201a; --line: #25392f;
+  --text: #eaf3e6; --muted: #9db3a5; --glow: #f6c453; --moss: #7fbf7a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; background: var(--night); color: var(--text);
+  font: 400 1.0625rem/1.65 "Be Vietnam Pro", system-ui, "Segoe UI", Roboto, sans-serif;
+  background-image: radial-gradient(60rem 28rem at 78% -6rem, rgba(246,196,83,.16), transparent 70%),
+                    radial-gradient(40rem 24rem at 4% 30rem, rgba(127,191,122,.10), transparent 70%);
+  background-repeat: no-repeat;
+}
+a { color: var(--glow); text-underline-offset: .2em; }
+a:hover { color: #ffe09a; }
+:focus-visible { outline: 3px solid var(--glow); outline-offset: 3px; border-radius: 4px; }
+.wrap { width: min(72rem, 100% - 2.5rem); margin-inline: auto; }
+header.top { display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 0; }
+.brand { font-weight: 800; font-size: 1.15rem; color: var(--text); text-decoration: none; display: inline-flex; align-items: center; gap: .6rem; }
+.brand i { width: .8rem; height: .8rem; border-radius: 50%; background: var(--glow); box-shadow: 0 0 .9rem .25rem rgba(246,196,83,.55); }
+header.top nav { display: flex; gap: 1.5rem; font-size: .95rem; }
+header.top nav a { color: var(--muted); text-decoration: none; }
+header.top nav a:hover { color: var(--text); }
+
+.hero { padding: clamp(2.5rem, 7vw, 5.5rem) 0 2.5rem; }
+h1 { font-weight: 800; font-size: clamp(2.35rem, 6.2vw, 4.4rem); line-height: 1.08; letter-spacing: -.025em; margin: 0 0 1.25rem; max-width: 15em; text-wrap: balance; }
+.lead { font-size: clamp(1.05rem, 2vw, 1.25rem); color: var(--muted); max-width: 40rem; margin: 0 0 2rem; }
+.actions { display: flex; flex-wrap: wrap; gap: .85rem; }
+.btn { display: inline-block; padding: .8rem 1.4rem; border-radius: 999px; font-weight: 700; text-decoration: none; border: 1.5px solid var(--line); color: var(--text); }
+.btn:hover { border-color: var(--muted); color: var(--text); }
+.btn.main { background: var(--glow); border-color: var(--glow); color: #1a1305; box-shadow: 0 0 2rem rgba(246,196,83,.28); }
+.btn.main:hover { background: #ffd978; border-color: #ffd978; color: #1a1305; }
+.small { color: var(--muted); font-size: .9rem; margin: 1rem 0 0; }
+
+.shot { margin: 1rem 0 0; }
+.shot img { display: block; width: 100%; height: auto; border-radius: .9rem; border: 1px solid var(--line); box-shadow: 0 2rem 6rem -1.5rem rgba(246,196,83,.22), 0 0 0 .5rem rgba(255,255,255,.02); }
+.shot figcaption { color: var(--muted); font-size: .9rem; margin-top: .8rem; }
+
+section { padding: clamp(3rem, 7vw, 5.5rem) 0 0; }
+h2 { font-size: clamp(1.6rem, 3.4vw, 2.3rem); line-height: 1.2; letter-spacing: -.015em; margin: 0 0 1.75rem; font-weight: 800; }
+.split { display: grid; grid-template-columns: 1fr 2fr; gap: 2rem 4rem; }
+@media (max-width: 52rem) { .split { grid-template-columns: 1fr; } header.top nav { display: none; } }
+.split > p { color: var(--muted); margin: 0; max-width: 24rem; }
+
+dl.feat { margin: 0; }
+dl.feat div { display: grid; grid-template-columns: 11rem 1fr; gap: .25rem 1.5rem; padding: 1.1rem 0; border-top: 1px solid var(--line); }
+dl.feat div:last-child { border-bottom: 1px solid var(--line); }
+dl.feat dt { font-weight: 700; }
+dl.feat dd { margin: 0; color: var(--muted); }
+@media (max-width: 40rem) { dl.feat div { grid-template-columns: 1fr; } }
+
+ol.steps { list-style: none; margin: 0; padding: 0; counter-reset: s; }
+ol.steps > li { counter-increment: s; position: relative; padding: 0 0 1.75rem 3.25rem; }
+ol.steps > li::before { content: counter(s); position: absolute; left: 0; top: -.1rem; width: 2.1rem; height: 2.1rem; border-radius: 50%; background: var(--glow); color: #1a1305; font-weight: 800; display: grid; place-items: center; }
+ol.steps > li:not(:last-child)::after { content: ""; position: absolute; left: 1.02rem; top: 2.3rem; bottom: .35rem; width: 2px; background: var(--line); }
+ol.steps h3 { margin: 0 0 .3rem; font-size: 1.1rem; }
+ol.steps p { margin: 0; color: var(--muted); }
+table.os { border-collapse: collapse; margin: .9rem 0 0; font-size: .98rem; width: 100%; max-width: 34rem; }
+table.os th, table.os td { text-align: left; padding: .55rem 1rem .55rem 0; border-top: 1px solid var(--line); font-weight: 400; }
+table.os th { color: var(--text); font-weight: 700; white-space: nowrap; }
+code { font-family: ui-monospace, "Cascadia Code", Menlo, Consolas, monospace; font-size: .92em; background: var(--soil); border: 1px solid var(--line); padding: .08em .4em; border-radius: .35rem; color: #ffe6ad; }
+.note { background: var(--soil); border-left: 3px solid var(--moss); padding: 1rem 1.25rem; border-radius: 0 .6rem .6rem 0; color: var(--muted); margin-top: .5rem; max-width: 40rem; }
+.note b { color: var(--text); }
+
+ul.docs { list-style: none; margin: 0; padding: 0; }
+ul.docs li { padding: .85rem 0; border-top: 1px solid var(--line); display: grid; grid-template-columns: 12rem 1fr; gap: .25rem 1.5rem; }
+ul.docs li:last-child { border-bottom: 1px solid var(--line); }
+ul.docs span { color: var(--muted); }
+@media (max-width: 40rem) { ul.docs li { grid-template-columns: 1fr; } }
+
+footer { margin-top: clamp(3.5rem, 8vw, 6rem); border-top: 1px solid var(--line); padding: 2rem 0 3rem; color: var(--muted); font-size: .92rem; display: flex; flex-wrap: wrap; gap: .5rem 2rem; justify-content: space-between; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="#"><i aria-hidden="true"></i>Firefly Video</a>
+    <nav aria-label="Điều hướng">
+      <a href="#tinh-nang">Tính năng</a>
+      <a href="#cai-dat">Cài và chạy</a>
+      <a href="#tai-lieu">Tài liệu</a>
+      <a href="https://github.com/ndhn27/firefly">GitHub</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="hero">
+      <h1>Dựng video giải thích ngay trên máy bạn</h1>
+      <p class="lead">Dán kịch bản, Firefly Video lo giọng đọc, phụ đề, ảnh và chuyển cảnh trên nền đom đóm. Xuất tới 2K 60fps cho Reels, Shorts, TikTok hoặc YouTube.</p>
+      <div class="actions">
+        <a class="btn main" href="https://github.com/ndhn27/firefly/archive/refs/heads/main.zip">Tải bản mới nhất (.zip)</a>
+        <a class="btn" href="https://github.com/ndhn27/firefly">Xem mã nguồn</a>
+      </div>
+      <p class="small">Miễn phí, giấy phép MIT. Chạy trên Windows, macOS và Linux.</p>
+
+      <figure class="shot">
+        <img src="screenshot.png" width="1440" height="860" alt="Giao diện Firefly Video: danh sách cảnh bên trái, khung xem trước có tiêu đề và phụ đề ở giữa, khung chỉnh sửa cảnh bên phải">
+        <figcaption>Giao diện thật của tool, mở trong trình duyệt tại <code>localhost:8765</code>.</figcaption>
+      </figure>
+    </div>
+
+    <section id="tinh-nang">
+      <div class="split">
+        <div>
+          <h2>Một tool, đủ các bước từ kịch bản đến file video</h2>
+          <p>Mỗi đoạn trong kịch bản là một cảnh. Bạn chọn cảnh để sửa chữ, thêm ảnh, nghe thử, rồi xuất.</p>
+        </div>
+        <dl class="feat">
+          <div><dt>Giọng đọc</dt><dd>Edge TTS miễn phí. Khi giọng chính lỗi, tool tự chuyển sang Piper (chạy offline) hoặc gTTS để video vẫn dựng được.</dd></div>
+          <div><dt>Phụ đề</dt><dd>Tự chia câu, đổi cụm đúng lúc từ đầu cụm được đọc; có tuỳ chọn tô sáng từ đang đọc.</dd></div>
+          <div><dt>Khung hình</dt><dd>9:16, 16:9, 1:1 và 4:5, kèm lớp phủ vùng an toàn để chữ không bị giao diện app che.</dd></div>
+          <div><dt>Ảnh và chuyển cảnh</dt><dd>Kéo thả hoặc dán ảnh chụp màn hình bằng Ctrl+V; ảnh dạng thẻ nổi, vừa khung có nền mờ hoặc toàn màn hình.</dd></div>
+          <div><dt>Âm lượng</dt><dd>Chuẩn hoá về −14 LUFS như YouTube và Facebook, nhạc nền tự nhỏ lại khi có lời.</dd></div>
+          <div><dt>Xuất video</dt><dd>Báo trước thời gian và dung lượng dự kiến, dùng GPU NVIDIA, Intel hoặc AMD nếu có, và chạy tiếp được khi bị gián đoạn.</dd></div>
+          <div><dt>Hoàn tác</dt><dd>Ctrl+Z và Ctrl+Shift+Z cho mọi thao tác, kể cả trong Cài đặt; giọng đã tạo không mất khi hoàn tác.</dd></div>
+          <div><dt>Kịch bản AI</dt><dd>Tuỳ chọn: nhờ mô hình Ollama chạy trên máy viết bản nháp, bạn sửa rồi mới tạo cảnh.</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <section id="cai-dat">
+      <div class="split">
+        <div>
+          <h2>Cài và chạy trong vài phút</h2>
+          <p>Không cần cài FFmpeg riêng. Lần đầu chạy tool tự tạo môi trường Python riêng và cài thư viện.</p>
+        </div>
+        <div>
+          <ol class="steps">
+            <li>
+              <h3>Tải và giải nén</h3>
+              <p>Cần Python 3.10 trở lên. Lần đầu cần internet, khoảng 1 phút; các lần sau khởi động dưới 1 giây.</p>
+            </li>
+            <li>
+              <h3>Bấm đúp file khởi động theo hệ điều hành</h3>
+              <table class="os">
+                <tr><th>Windows</th><td><code>run.bat</code></td></tr>
+                <tr><th>macOS</th><td><code>FireflyVideo.command</code></td></tr>
+                <tr><th>Linux / WSL</th><td><code>./run.sh</code></td></tr>
+              </table>
+            </li>
+            <li>
+              <h3>Làm việc trong trình duyệt</h3>
+              <p>Tool tự mở <code>http://localhost:8765</code>. Tạo dự án, dán kịch bản, tạo giọng, xem thử rồi xuất video. Dự án tự lưu trên máy bạn.</p>
+            </li>
+          </ol>
+          <p class="note"><b>Về internet:</b> giọng Edge TTS cần mạng. Muốn tạo giọng hoàn toàn offline thì cài Piper theo hướng dẫn trong tài liệu giọng đọc. Cũng có bản đóng gói <code>.exe</code> không cần cài Python, bạn tự build bằng <code>build_exe.bat</code>.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="tai-lieu">
+      <div class="split">
+        <div>
+          <h2>Tài liệu</h2>
+          <p>Hướng dẫn chi tiết nằm trong thư mục <code>docs/</code> của repo.</p>
+        </div>
+        <ul class="docs">
+          <li><a href="https://github.com/ndhn27/firefly/blob/main/docs/features.md">Tính năng chi tiết</a><span>Xuất video, âm lượng, hình ảnh, vùng an toàn, dọn file.</span></li>
+          <li><a href="https://github.com/ndhn27/firefly/blob/main/docs/tts.md">Giọng đọc và phụ đề</a><span>Giọng dự phòng, cài Piper, biến môi trường.</span></li>
+          <li><a href="https://github.com/ndhn27/firefly/blob/main/docs/ai-script.md">Kịch bản AI</a><span>Dùng Ollama để viết bản nháp.</span></li>
+          <li><a href="https://github.com/ndhn27/firefly/blob/main/docs/troubleshooting.md">Nhật ký và xử lý lỗi</a><span>Bảng mã lỗi và cách khắc phục.</span></li>
+          <li><a href="https://github.com/ndhn27/firefly/blob/main/docs/packaging.md">Đóng gói .exe</a><span>Build bản chạy không cần Python.</span></li>
+          <li><a href="https://github.com/ndhn27/firefly/blob/main/docs/development.md">Phát triển</a><span>Cấu trúc mã giao diện và cách chạy test.</span></li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>Firefly Video, mã nguồn theo giấy phép MIT. Font Be Vietnam Pro theo SIL OFL.</span>
+    <a href="https://github.com/ndhn27/firefly/issues">Báo lỗi hoặc góp ý</a>
+  </footer>
+</div>
+</body>
+</html>
