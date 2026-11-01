@@ -1,6 +1,6 @@
 """Golden-frame: khung hình dựng ra phải khớp ảnh chuẩn ở cả 4 tỉ lệ khung.
 Cố ý đổi giao diện/hiệu ứng thì cập nhật ảnh chuẩn:  UPDATE_GOLDEN=1 python -m pytest tests/test_golden.py
-rồi xem lại các ảnh trong tests/golden/ trước khi commit."""
+rồi xem lại các ảnh trong tests/golden/ trước khi commit. Ảnh chuẩn được dựng với bộ dàn chữ BASIC (xem conftest.pinned_layout)."""
 import os
 from pathlib import Path
 
@@ -11,13 +11,14 @@ import pytest
 import render as R
 from conftest import add_fake_audio, make_project
 
+pytestmark = pytest.mark.usefixtures("pinned_layout")  # cả file: bố cục chữ phải giống nhau ở mọi máy (xem conftest.pinned_layout)
 GOLD = Path(__file__).parent / "golden"
 ASPECTS = ["16:9", "9:16", "1:1", "4:5"]
 # (nhãn, hàm tính thời điểm từ timeline): cảnh 1 (thẻ ảnh + tiêu đề + phụ đề), giữa lúc chuyển cảnh 1->2, cảnh 2 (ảnh phủ kín)
 TIMES = [("s1", lambda tl: 1.6),
          ("trans", lambda tl: tl["scenes"][1]["start"] + tl["scenes"][0]["T"] * 0.5),
          ("s2", lambda tl: tl["scenes"][1]["start"] + 1.8)]
-MEAN_TOL, P99_TOL = 1.5, 40  # chênh lệch trung bình / phân vị 99 (thang 0-255); đủ rộng cho khác biệt font giữa các máy
+MEAN_TOL, P99_TOL = 1.5, 40  # chênh lệch trung bình / phân vị 99 (thang 0-255); đủ rộng cho nhiễu số học nhỏ giữa các máy (bộ dàn chữ đã ghim, nên không còn lệch kerning)
 
 
 def render(root, aspect, t, **extra):
