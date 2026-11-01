@@ -1,6 +1,6 @@
 """Biến lỗi kỹ thuật (FFmpeg, hệ điều hành, mạng, thư viện) thành thông báo tiếng Việt kèm cách xử lý.
 explain(exc) -> dict(error, hint, code, ref):
-  error: chuyện gì xảy ra · hint: làm gì tiếp · code: nhóm lỗi (README có bảng) · ref: mã tra trong logs/firefly.log.
+  error: chuyện gì xảy ra · hint: làm gì tiếp · code: nhóm lỗi (bảng ở docs/troubleshooting.md) · ref: mã tra trong logs/firefly.log.
 Lỗi nào chưa biết thì báo chung kèm mã ref; toàn bộ chi tiết kỹ thuật chỉ nằm trong nhật ký, không đẩy lên màn hình."""
 import errno
 import logging
