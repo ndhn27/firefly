@@ -74,4 +74,4 @@ for (const t of ['dragover', 'drop']) window.addEventListener(t, ev => {
   if (!ev.dataTransfer || ![...ev.dataTransfer.types].includes('Files')) return;
   ev.preventDefault(); if (t === 'dragover' && !ev.target.closest('#editor')) ev.dataTransfer.dropEffect = 'none';
 });
-boot().catch(e => toast(e, true));
+boot().catch(e => { reportError('Lỗi khi khởi động: ' + (e && e.message || e), 'boot', e && e.stack); toast(e, true); });  // ghi cả vào nhật ký: trước đây chỉ hiện toast nên rất khó truy
