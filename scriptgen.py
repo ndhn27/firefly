@@ -11,6 +11,7 @@ import http.client
 import json
 import math
 import os
+import queue
 import re
 import socket
 import statistics
@@ -398,24 +399,24 @@ def _params(m):
     return dict(params=ps, small=b < SMALL_B)
 
 
+def _abort(conn):
+    """Đóng kết nối, và (nơi hệ điều hành cho phép: Linux, macOS) đánh thức luôn luồng đang kẹt trong lệnh đọc."""
+    try:
+        conn.sock.shutdown(socket.SHUT_RDWR)
+    except (OSError, AttributeError):
+        pass
+    conn.close()
+
+
 def chat_stream(base, body, cancel=None, on_chunk=None, idle_timeout=300):
     """POST /api/chat dạng stream (từng dòng JSON). -> (toàn bộ chữ, done_reason).
-    Huỷ: một luồng canh `cancel()` mỗi 0,3 giây và ngắt socket để lệnh đọc đang chờ (VD mô hình đang nạp) thoát ngay."""
+    Việc đọc mạng chạy ở một luồng riêng; luồng gọi chỉ chờ hàng đợi và hỏi `cancel()` mỗi 0,3 giây rồi bỏ luồng đọc lại (daemon) khi bị huỷ.
+    Không dựa vào việc ngắt socket từ luồng khác để đánh thức lệnh đọc đang chờ (VD mô hình đang nạp, chưa nhả chữ nào): shutdown()
+    làm được trên Linux/macOS nhưng không làm được trên Windows, nơi lệnh đọc nằm chờ đến khi máy chủ gửi gì đó (CI: đúng 30 giây)."""
     conn, prefix = _open(base, idle_timeout)
-    stop = threading.Event()
-    parts, reason, size = [], None, 0
+    q = queue.Queue()
 
-    def watch():
-        while not stop.wait(0.3):
-            if cancel and cancel():
-                try:
-                    conn.sock.shutdown(socket.SHUT_RDWR)
-                except (OSError, AttributeError):
-                    pass
-                return
-
-    threading.Thread(target=watch, daemon=True).start()
-    try:
+    def pump():
         try:
             conn.request("POST", prefix + "/api/chat", json.dumps(body), {"Content-Type": "application/json"})
             r = conn.getresponse()
@@ -426,6 +427,7 @@ def chat_stream(base, body, cancel=None, on_chunk=None, idle_timeout=300):
                 except ValueError:
                     pass
                 raise _http_error(r.status, str(msg), body)
+            reason = None
             while True:
                 line = r.readline()
                 if not line:
@@ -438,24 +440,45 @@ def chat_stream(base, body, cancel=None, on_chunk=None, idle_timeout=300):
                     raise _http_error(500, str(obj["error"]), body)
                 piece = (obj.get("message") or {}).get("content") or ""
                 if piece:
-                    parts.append(piece)
-                    size += len(piece)
-                    if on_chunk:
-                        on_chunk(size)
+                    q.put(("piece", piece))
                 if obj.get("done"):
                     reason = obj.get("done_reason")
                     break
-        except (OSError, http.client.HTTPException, ValueError) as e:
+            q.put(("done", reason))
+        except Exception as e:  # noqa - chuyển hết sang luồng gọi xử lý, không để rơi vào excepthook của luồng
+            q.put(("error", e))
+
+    threading.Thread(target=pump, daemon=True, name="ollama-stream").start()
+    parts, reason, size = [], None, 0
+    try:
+        while True:
             if cancel and cancel():
                 raise Cancelled()
-            if not parts:
-                if isinstance(e, TimeoutError):
-                    raise ScriptError(f"Ollama không phản hồi sau {idle_timeout // 60} phút. Mô hình có thể quá nặng cho máy, thử mô hình nhỏ hơn.")
-                raise _unreachable(base)
-            reason = reason or "interrupted"  # đứt giữa chừng: trả phần đã nhận, bước kiểm tra JSON sẽ bắt thử lại
+            try:
+                kind, val = q.get(timeout=0.3)
+            except queue.Empty:
+                continue
+            if kind == "piece":
+                parts.append(val)
+                size += len(val)
+                if on_chunk:
+                    on_chunk(size)
+            elif kind == "done":
+                reason = val
+                break
+            else:
+                if not isinstance(val, (OSError, http.client.HTTPException, ValueError)):
+                    raise val
+                if cancel and cancel():
+                    raise Cancelled()
+                if not parts:
+                    if isinstance(val, TimeoutError):
+                        raise ScriptError(f"Ollama không phản hồi sau {idle_timeout // 60} phút. Mô hình có thể quá nặng cho máy, thử mô hình nhỏ hơn.")
+                    raise _unreachable(base)
+                reason = "interrupted"  # đứt giữa chừng: trả phần đã nhận, bước kiểm tra JSON sẽ bắt thử lại
+                break
     finally:
-        stop.set()
-        conn.close()
+        _abort(conn)
     if cancel and cancel():
         raise Cancelled()
     return "".join(parts), reason
