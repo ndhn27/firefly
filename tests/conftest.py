@@ -6,6 +6,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 import pytest
+from PIL import ImageFont
 
 os.environ["FFV_FAKE_TTS"] = "1"  # giọng giả offline, có mốc từ chính xác tuyệt đối
 ROOT = Path(__file__).resolve().parent.parent
@@ -65,3 +66,16 @@ def root(tmp_path_factory):
 @pytest.fixture()
 def proj(root):
     return add_fake_audio(root, make_project())
+
+
+@pytest.fixture()
+def pinned_layout():
+    """Test golden so khung hình với ảnh chuẩn, nên chữ phải được dàn bằng cùng một bộ ở mọi máy. Pillow tự chọn RAQM khi máy có
+    libfribidi (runner Linux sau `playwright install --with-deps`) và BASIC khi không có (Windows, macOS): kerning khác nhau làm
+    khung lệch ~1,6–1,7/255, vượt ngưỡng. BASIC là bộ người dùng Windows/macOS thực sự gặp, nên ghim bộ này."""
+    old = R.LAYOUT_ENGINE
+    R.LAYOUT_ENGINE = ImageFont.Layout.BASIC
+    R.get_font.cache_clear()
+    yield
+    R.LAYOUT_ENGINE = old
+    R.get_font.cache_clear()
